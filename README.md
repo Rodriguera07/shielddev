@@ -2,6 +2,12 @@
 
 Portfólio de Rodrigo Dantas (Shield Dev). Vite + React + TypeScript + Tailwind CSS.
 
+## Preview
+
+Seção de Projetos — carrossel com filtro por categoria, arraste, setas, dots e autoplay:
+
+![Seção de Projetos](docs/projetos.png)
+
 ## Rodar localmente
 
 Pré-requisito: Node.js 18+ instalado.
