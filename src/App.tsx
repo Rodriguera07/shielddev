@@ -13,6 +13,7 @@ import FAQ from "./components/FAQ";
 import Contato from "./components/Contato";
 import Footer from "./components/Footer";
 import BackToTop from "./components/BackToTop";
+import ChatWidget from "./components/ChatWidget";
 
 export default function App() {
   useEffect(() => {
@@ -79,6 +80,7 @@ export default function App() {
       <Contato />
       <Footer />
       <BackToTop />
+      <ChatWidget />
     </>
   );
 }
