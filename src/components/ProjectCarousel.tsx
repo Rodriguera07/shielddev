@@ -6,6 +6,7 @@ const AUTOPLAY_MS = 4200;
 const DRAG_THRESHOLD = 6;
 
 export default function ProjectCarousel({ projetos }: { projetos: Projeto[] }) {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dragState = useRef({ active: false, moved: false, startX: 0, startScroll: 0 });
@@ -15,9 +16,20 @@ export default function ProjectCarousel({ projetos }: { projetos: Projeto[] }) {
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     reduceMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
+
+  // Só roda o autoplay com o carrossel de fato na tela — evita que o goTo()
+  // force scroll vertical da página pra "trazer" um card fora da viewport.
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.4 });
+    io.observe(el);
+    return () => io.disconnect();
   }, []);
 
   // Reseta pro início sempre que a lista de projetos muda (ex.: troca de filtro).
@@ -58,9 +70,9 @@ export default function ProjectCarousel({ projetos }: { projetos: Projeto[] }) {
     };
   }, [projetos]);
 
-  // Autoplay: avança sozinho, volta ao início ao chegar no fim, pausa em hover/drag/foco.
+  // Autoplay: avança sozinho, volta ao início ao chegar no fim, pausa em hover/drag/foco/fora da tela.
   useEffect(() => {
-    if (reduceMotion.current || paused || projetos.length < 2) return;
+    if (reduceMotion.current || paused || !visible || projetos.length < 2) return;
     const id = window.setInterval(() => {
       const track = trackRef.current;
       if (!track) return;
@@ -72,11 +84,15 @@ export default function ProjectCarousel({ projetos }: { projetos: Projeto[] }) {
       }
     }, AUTOPLAY_MS);
     return () => window.clearInterval(id);
-  }, [paused, activeIndex, projetos.length]);
+  }, [paused, visible, activeIndex, projetos.length]);
 
+  // Rola só o track horizontalmente (nunca a página) — scrollIntoView mexeria
+  // no scroll vertical do documento quando o carrossel está fora da viewport.
   const goTo = (index: number) => {
+    const track = trackRef.current;
     const el = slideRefs.current[Math.max(0, Math.min(index, projetos.length - 1))];
-    el?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    if (!track || !el) return;
+    track.scrollTo({ left: el.offsetLeft, behavior: "smooth" });
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -114,6 +130,7 @@ export default function ProjectCarousel({ projetos }: { projetos: Projeto[] }) {
   return (
     <div
       className="proj-carousel"
+      ref={carouselRef}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
