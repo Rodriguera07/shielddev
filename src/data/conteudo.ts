@@ -120,9 +120,9 @@ export const PROJETOS: Projeto[] = [
     descricao:
       "Portfólio e identidade da marca — engenharia de software e desenvolvimento web de alto desempenho.",
     tags: ["React", "Tailwind", "UI/UX"],
-    href: "#",
+    href: "#top",
     hrefLabel: "Ver detalhes",
-    gradiente: "linear-gradient(135deg,#0e7490,#0891b2)",
+    imagem: "/projetos/shielddev.png",
   },
   {
     idx: "05",
