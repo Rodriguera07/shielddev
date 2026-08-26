@@ -5,6 +5,9 @@ import { spotlight } from "../lib/spotlight";
 
 export default function Contato() {
   const ctaRef = useMagnetic<HTMLAnchorElement>(0.25);
+  const githubRef = useMagnetic<HTMLAnchorElement>(0.25);
+  const linkedinRef = useMagnetic<HTMLAnchorElement>(0.25);
+  const emailRef = useMagnetic<HTMLAnchorElement>(0.25);
 
   return (
     <section className="section" id="contact">
@@ -23,16 +26,22 @@ export default function Contato() {
             Chamar no WhatsApp <span className="arrow">→</span>
           </a>
           <div className="socials">
-            <a href={CONTATOS.github} target="_blank" rel="noreferrer">
-              <Github size={15} strokeWidth={2} />
+            <a ref={githubRef} href={CONTATOS.github} target="_blank" rel="noreferrer" className="social-github">
+              <span className="social-icon">
+                <Github size={15} strokeWidth={2} />
+              </span>
               GitHub
             </a>
-            <a href={CONTATOS.linkedin} target="_blank" rel="noreferrer">
-              <Linkedin size={15} strokeWidth={2} />
+            <a ref={linkedinRef} href={CONTATOS.linkedin} target="_blank" rel="noreferrer" className="social-linkedin">
+              <span className="social-icon">
+                <Linkedin size={15} strokeWidth={2} />
+              </span>
               LinkedIn
             </a>
-            <a href={CONTATOS.email}>
-              <Mail size={15} strokeWidth={2} />
+            <a ref={emailRef} href={CONTATOS.email} className="social-email">
+              <span className="social-icon">
+                <Mail size={15} strokeWidth={2} />
+              </span>
               E-mail
             </a>
           </div>
