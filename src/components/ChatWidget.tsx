@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import { BRAND, CONTATOS } from "../data/conteudo";
 import Logo from "./Logo";
@@ -10,9 +10,19 @@ const TIPOS_PROJETO = ["Site institucional", "Landing page", "Loja virtual", "Si
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [teaser, setTeaser] = useState(false);
+
+  const [nome, setNome] = useState("");
+  const [nomeEnviado, setNomeEnviado] = useState<string | null>(null);
   const [tipoProjeto, setTipoProjeto] = useState<string | null>(null);
+  const [detalhes, setDetalhes] = useState("");
+  const [detalhesConcluido, setDetalhesConcluido] = useState(false);
+  const [detalhesEnviados, setDetalhesEnviados] = useState("");
+
   const panelRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  const nomeInputRef = useRef<HTMLInputElement | null>(null);
+  const detalhesInputRef = useRef<HTMLInputElement | null>(null);
 
   // Balão de convite espontâneo, uma vez por visita.
   useEffect(() => {
@@ -43,9 +53,47 @@ export default function ChatWidget() {
     };
   }, [open]);
 
-  const mensagem = tipoProjeto
-    ? `Oi! Vim pelo seu portfólio. Quero um projeto de "${tipoProjeto}" e gostaria de conversar sobre os detalhes.`
-    : MENSAGEM_PADRAO;
+  // Foca o campo da etapa atual conforme a conversa avança.
+  useEffect(() => {
+    if (open && !nomeEnviado) nomeInputRef.current?.focus();
+  }, [open, nomeEnviado]);
+
+  useEffect(() => {
+    if (nomeEnviado && tipoProjeto && !detalhesConcluido) detalhesInputRef.current?.focus();
+  }, [nomeEnviado, tipoProjeto, detalhesConcluido]);
+
+  // Acompanha a conversa rolando pro final a cada nova etapa.
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (body) body.scrollTop = body.scrollHeight;
+  }, [nomeEnviado, tipoProjeto, detalhesConcluido]);
+
+  const primeiroNome = nomeEnviado?.split(" ")[0];
+
+  const submitNome = (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = nome.trim();
+    if (!trimmed) return;
+    setNomeEnviado(trimmed);
+  };
+
+  const submitDetalhes = (e: FormEvent) => {
+    e.preventDefault();
+    setDetalhesEnviados(detalhes.trim());
+    setDetalhesConcluido(true);
+  };
+
+  const pularDetalhes = () => {
+    setDetalhesEnviados("");
+    setDetalhesConcluido(true);
+  };
+
+  const partesMensagem: string[] = [];
+  if (nomeEnviado) partesMensagem.push(`Meu nome é ${nomeEnviado}.`);
+  if (tipoProjeto) partesMensagem.push(`Quero um projeto de "${tipoProjeto}".`);
+  if (detalhesEnviados) partesMensagem.push(`Detalhes: ${detalhesEnviados}.`);
+  const mensagem =
+    partesMensagem.length > 0 ? `Oi! Vim pelo seu portfólio. ${partesMensagem.join(" ")}` : MENSAGEM_PADRAO;
   const waHref = `${CONTATOS.whatsapp}?text=${encodeURIComponent(mensagem)}`;
 
   return (
@@ -82,28 +130,80 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          <div className="chat-panel-body">
+          <div className="chat-panel-body" ref={bodyRef}>
             <div className="chat-bubble">
               Oi! 👋 Sou o Rodrigo. Me conta rapidinho sobre o seu projeto que te respondo direto no WhatsApp.
             </div>
 
-            <div className="chat-bubble">Que tipo de projeto você precisa?</div>
-
-            <div className="chat-options" role="group" aria-label="Tipo de projeto">
-              {TIPOS_PROJETO.map((tipo) => (
-                <button
-                  key={tipo}
-                  type="button"
-                  className={`filter-tab chat-option${tipoProjeto === tipo ? " active" : ""}`}
-                  aria-pressed={tipoProjeto === tipo}
-                  onClick={() => setTipoProjeto(tipoProjeto === tipo ? null : tipo)}
-                >
-                  {tipo}
+            <div className="chat-bubble">Como posso te chamar?</div>
+            {nomeEnviado ? (
+              <div className="chat-bubble user">{nomeEnviado}</div>
+            ) : (
+              <form className="chat-input-row" onSubmit={submitNome}>
+                <input
+                  ref={nomeInputRef}
+                  type="text"
+                  className="chat-input"
+                  placeholder="Seu nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  maxLength={40}
+                />
+                <button type="submit" className="chat-send" aria-label="Enviar nome" disabled={!nome.trim()}>
+                  <Send size={14} strokeWidth={2.4} />
                 </button>
-              ))}
-            </div>
+              </form>
+            )}
 
-            {tipoProjeto && <div className="chat-bubble user">{tipoProjeto}</div>}
+            {nomeEnviado && (
+              <>
+                <div className="chat-bubble">Que tipo de projeto você precisa, {primeiroNome}?</div>
+                <div className="chat-options" role="group" aria-label="Tipo de projeto">
+                  {TIPOS_PROJETO.map((tipo) => (
+                    <button
+                      key={tipo}
+                      type="button"
+                      className={`filter-tab chat-option${tipoProjeto === tipo ? " active" : ""}`}
+                      aria-pressed={tipoProjeto === tipo}
+                      onClick={() => setTipoProjeto(tipoProjeto === tipo ? null : tipo)}
+                    >
+                      {tipo}
+                    </button>
+                  ))}
+                </div>
+                {tipoProjeto && <div className="chat-bubble user">{tipoProjeto}</div>}
+              </>
+            )}
+
+            {nomeEnviado && tipoProjeto && !detalhesConcluido && (
+              <>
+                <div className="chat-bubble">Quer contar mais algum detalhe? Prazo, orçamento, referências... (opcional)</div>
+                <form className="chat-input-row" onSubmit={submitDetalhes}>
+                  <input
+                    ref={detalhesInputRef}
+                    type="text"
+                    className="chat-input"
+                    placeholder="Escreva aqui..."
+                    value={detalhes}
+                    onChange={(e) => setDetalhes(e.target.value)}
+                    maxLength={140}
+                  />
+                  <button type="submit" className="chat-send" aria-label="Enviar detalhes" disabled={!detalhes.trim()}>
+                    <Send size={14} strokeWidth={2.4} />
+                  </button>
+                </form>
+                <button type="button" className="chat-skip" onClick={pularDetalhes}>
+                  Pular essa etapa →
+                </button>
+              </>
+            )}
+
+            {detalhesConcluido && (
+              <>
+                {detalhesEnviados && <div className="chat-bubble user">{detalhesEnviados}</div>}
+                <div className="chat-bubble">Perfeito, {primeiroNome}! 🙌 É só confirmar no WhatsApp que te respondo rapidinho.</div>
+              </>
+            )}
           </div>
 
           <a href={waHref} target="_blank" rel="noreferrer" className="chat-cta">
