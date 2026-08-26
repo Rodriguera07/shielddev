@@ -320,7 +320,7 @@
   .terminal-bar i:nth-child(2){background:#febc2e;}
   .terminal-bar i:nth-child(3){background:#28c840;}
   .terminal-title{margin-left:8px;font-size:11.5px;color:#7c8aa5;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
-  .terminal-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:4px;
+  .terminal-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:4px;min-height:236px;
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
   .terminal-line{font-size:13px;color:#c7d2e6;}
   .terminal-line.dim{color:#7c8aa5;}
